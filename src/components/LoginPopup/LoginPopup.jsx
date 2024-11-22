@@ -11,7 +11,7 @@ const LoginPopup = ({ setShowLogin }) => {
   const [otp, setOtp] = useState("");
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [userEmail, setUserEmail] = useState(""); // Store email for OTP verification
-
+  const [newPassword, setNewPassword] = useState(""); // State for new password
   const [data, setData] = useState({
     name: "",
     email: "",
@@ -24,6 +24,7 @@ const LoginPopup = ({ setShowLogin }) => {
     setData((data) => ({ ...data, [name]: value }));
   };
 
+  // Handler for Forgot Password Request
   const onForgotPasswordSubmit = async (e) => {
     e.preventDefault();
     const response = await axios.post(`${url}/api/user/forgot-password`, {
@@ -37,6 +38,7 @@ const LoginPopup = ({ setShowLogin }) => {
     }
   };
 
+  // Handler for OTP Verification
   const onOtpSubmit = async (e) => {
     e.preventDefault();
     const response = await axios.post(`${url}/api/user/verify-otp`, {
@@ -54,6 +56,7 @@ const LoginPopup = ({ setShowLogin }) => {
     }
   };
 
+  // Handler for Login or Signup
   const onLogin = async (e) => {
     e.preventDefault();
     let new_url = url;
@@ -79,6 +82,21 @@ const LoginPopup = ({ setShowLogin }) => {
     }
   };
 
+  // Handler for Resetting the Password
+  const onResetPasswordSubmit = async (e) => {
+    e.preventDefault();
+    const response = await axios.post(`${url}/api/user/reset-password`, {
+      email: forgotPasswordEmail,
+      newPassword,
+    });
+    if (response.data.success) {
+      toast.success("Password reset successfully.");
+      setCurrState("Login");
+    } else {
+      toast.error(response.data.message);
+    }
+  };
+
   return (
     <div className="login-popup">
       <form
@@ -87,6 +105,8 @@ const LoginPopup = ({ setShowLogin }) => {
             ? onForgotPasswordSubmit
             : currState === "Verify OTP"
             ? onOtpSubmit
+            : currState === "Reset Password"
+            ? onResetPasswordSubmit
             : onLogin
         }
         className="login-popup-container"
@@ -113,6 +133,19 @@ const LoginPopup = ({ setShowLogin }) => {
           </div>
         )}
 
+        {currState === "Reset Password" && (
+          <div className="login-popup-inputs">
+            <input
+              name="newPassword"
+              onChange={(e) => setNewPassword(e.target.value)}
+              value={newPassword}
+              type="password"
+              placeholder="Enter new password"
+              required
+            />
+          </div>
+        )}
+
         {currState === "Verify OTP" && (
           <div className="login-popup-inputs">
             <input
@@ -126,7 +159,7 @@ const LoginPopup = ({ setShowLogin }) => {
           </div>
         )}
 
-        {currState !== "Forgot Password" && currState !== "Verify OTP" && (
+        {currState !== "Forgot Password" && currState !== "Verify OTP" && currState !== "Reset Password" && (
           <div className="login-popup-inputs">
             {currState === "Sign Up" && (
               <input
@@ -162,6 +195,8 @@ const LoginPopup = ({ setShowLogin }) => {
             ? "Send Reset Link"
             : currState === "Verify OTP"
             ? "Verify OTP"
+            : currState === "Reset Password"
+            ? "Reset Password"
             : currState === "Login"
             ? "Login"
             : "Create account"}
